@@ -15,7 +15,10 @@
   shown.}
 
   \item{tolPlot}{single positive numerical value giving a
-  tolerance for plotting graphical diagnostics.}
+  tolerance for plotting graphical diagnostics.  If the
+  sums of the differences between the distribution
+  percentiles and the given percentiles are smaller than
+  this value, the distribution will be plotted.}
 
   \item{tolConv}{positive numerical value, the absolute
   convergence tolerance for reaching zero.}
@@ -78,6 +81,13 @@ chosenDistr6}
   (\acronym{STAT-UP} Statistical Consulting), \cr Natalia
   Belgorodski \email{belgorodski@stat-up.de}
   (\acronym{STAT-UP} Statistical Consulting)
+}
+\references{
+  Engelhardt, A., N. Belgorodski, K. Tolksdorf, C.
+  Mueller-Graf and Matthias Greiner (2012),
+  rriskDistributions: Estimating distribution parameters
+  based on empirical quantiles and data. R Journal
+  (submitted).
 }
 \keyword{gui}
 

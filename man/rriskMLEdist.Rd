@@ -112,5 +112,12 @@ rriskMLEdist(x2,"gompertz")
   \pkg{fitdistrplus}), \cr Christophe Dutang (coauthor of
   the package \pkg{fitdistrplus})
 }
+\references{
+  Engelhardt, A., N. Belgorodski, K. Tolksdorf, C.
+  Mueller-Graf and Matthias Greiner (2012),
+  rriskDistributions: Estimating distribution parameters
+  based on empirical quantiles and data. R Journal
+  (submitted).
+}
 \keyword{fitdistrplus}
 

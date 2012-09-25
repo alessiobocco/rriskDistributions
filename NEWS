@@ -1,0 +1,5 @@
+
+Version 1.8
+   * Output of function fit.perc() has a new list elements 'fitSummary' and 'fit.weights'.
+
+

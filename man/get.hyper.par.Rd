@@ -126,6 +126,13 @@ get.hyper.par(q=q,fit.weights=c(1,10,1))}
   \email{belgorodski@stat-up.de} (\acronym{STAT-UP}
   Statistical Consulting)
 }
+\references{
+  Engelhardt, A., N. Belgorodski, K. Tolksdorf, C.
+  Mueller-Graf and Matthias Greiner (2012),
+  rriskDistributions: Estimating distribution parameters
+  based on empirical quantiles and data. R Journal
+  (submitted).
+}
 \seealso{
   See \code{phyper} for distribution implementation
   details.

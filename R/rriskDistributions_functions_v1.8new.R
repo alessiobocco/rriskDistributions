@@ -8,9 +8,11 @@
 # Auftragnehmer: Stat-Up, München
 # ------------------------------------------------------------------------------
 # Autor: Natalia Belgorodski, Stat-Up
-# Letztes Update: 06.06.2012
+# Letztes Update: 14.09.2012
 ################################################################################
 ################################################################################
+
+
 
 
 #*******************************************************************************
@@ -43,7 +45,9 @@
 #' @param p numerical vector of probabilities.
 #' @param q numerical vector of quantiles.
 #' @param show.output logical, if \code{TRUE} the output of the fitting functions \code{get.distribution.par} will be shown.
-#' @param tolPlot single positive numerical value giving a tolerance for plotting graphical diagnostics.
+#' @param tolPlot single positive numerical value giving a tolerance for plotting graphical diagnostics. 
+#'    If the sums of the differences between the distribution percentiles and
+#'    the given percentiles are smaller than this value, the distribution will be plotted.
 #' @param tolConv positive numerical value, the absolute convergence tolerance for reaching zero.
 #' @param fit.weights numerical vector of the same length as a probabilities vector 
 #'    \code{p} containing positive values for weighting quantiles. By default all
@@ -52,10 +56,12 @@
 #' and the data on which the estimation is based.
 #' @note This function is used for defining a Monte-Carlo random variate item
 #' (\code{mcrv}) in the \code{rrisk} project.
-# @seealso nothing...
+# @seealso See packages \pkg{rrisk}, pkg{rriskBayes}.
 #' @keywords gui
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' chosenDistr1<-fit.perc()
@@ -134,6 +140,11 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
   assign("chosenD",value=NA,envir=tempEnvir)
   assign("allParameters",value=NA,envir=tempEnvir)
   assign("fittedParams",value=NA,envir=tempEnvir)
+  assign("p",value=p,envir=tempEnvir)
+  assign("q",value=q,envir=tempEnvir)
+  assign("fit.weights",value=fit.weights,envir=tempEnvir)
+  #assign("tolPlot",value=tolPlot,envir=tempEnvir)
+  #assign("tolConv",value=tolConv,envir=tempEnvir)
 
   #-----------------------------------------------------------------------------
   # define help variables for tk commands and objects
@@ -171,7 +182,9 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
   # what happends by pressing "cancel" button
   #-----------------------------------------------------------------------------
   onOk<-function(...)
-  {
+  { #---------------------------------------------------------------------------
+    # get values of fitted parameters
+    #---------------------------------------------------------------------------
     fittedParams.temp<-get("allParameters",envir=tempEnvir)
     if(!prod(is.na(fittedParams.temp)))
     {
@@ -219,6 +232,10 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
         assign("fittedParams",value=fittedParams,envir=tempEnvir)
       } else chosenD<-"NA"
     }
+    
+    #---------------------------------------------------------------------------
+    # destroy firperc window
+    #---------------------------------------------------------------------------
     tkdestroy(fitpercWindow)
   } # end of onCancel()
 
@@ -382,6 +399,13 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
 
     # calculate results matrix
     fit.results<-rriskFitdist.perc(p,q,show.output=FALSE,tolConv=tolConv,fit.weights)
+    
+    #---------------------------------------------------------------------------
+    # save contron parameters
+    #---------------------------------------------------------------------------
+    assign("p",value=p,envir=tempEnvir)
+    assign("q",value=q,envir=tempEnvir)
+    assign("fit.weights",value=fit.weights,envir=tempEnvir)
 
     if(!prod(is.na(fit.results))) # if res.matrix is not empty
     {
@@ -439,7 +463,7 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
   # create GUI window and frames
   #-----------------------------------------------------------------------------
   fitpercWindow<-tktoplevel(width=860,height=580)
-  tkwm.title(fitpercWindow,"Fitting constinious distribution by given quantiles")
+  tkwm.title(fitpercWindow,"Fitting continuous distributions to given percentiles")
   tkwm.resizable(fitpercWindow,0,0)  # fixed size, not resizeable
   #tkwm.maxsize(fitpercWindow,880,580)
   #tkwm.minsize(fitpercWindow,880,580)
@@ -587,8 +611,12 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
   #-----------------------------------------------------------------------------
   chosenD<-get("chosenD",envir=tempEnvir)
   fittedParams<-get("fittedParams",envir=tempEnvir)
-  output<-list(data.frame(p,q),chosenD,fittedParams)
-  names(output)<-c("p/q","chosenDistr","fittedParams")
+  p<-get("p",envir=tempEnvir)
+  q<-get("q",envir=tempEnvir)
+  fit.weights<-get("fit.weights",envir=tempEnvir)
+  fitSummary<-paste(chosenD,"(",paste(names(fittedParams),"=",signif(fittedParams,3),collapse=", ") ,") fitted to quantiles q=(",paste(signif(q,3),collapse=","),") using p=(",paste(p,collapse=","),")",sep="")
+  output<-list(data.frame(p,q),chosenD,fittedParams,fitSummary,fit.weights)
+  names(output)<-c("p/q","chosenDistr","fittedParams","fitSummary","fit.weights")
 
   #-----------------------------------------------------------------------------
   # output message
@@ -631,7 +659,6 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
 
 
 ################################################################################
-
 #' Diagnostic plot for choosing a most appropriate continuous probability for known quantiles
 #'
 #' This function plots distribution whose percentiles go through the given percentiles
@@ -650,10 +677,12 @@ fit.perc<-function(p=c(0.025,0.5,0.975),q=qnorm(p),show.output=FALSE,tolPlot=0.1
 #' percentiles and the given percentiles are smaller than this value, the distribution
 #' will be plotted.
 #' @return Only graphical output.
-# @seealso nothing...
 #' @keywords others
 #' @export
-# @references Gemeinsames Paper...
+#' @seealso See packages \pkg{rrisk}, \pkg{rriskBayes}
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' p<-c(0.025,0.5,0.975)
@@ -986,7 +1015,6 @@ plotDiagnostics.perc<-function(fit.results,tolPlot=0.1)
 
 
 ################################################################################
-
 #' This function fits the amount of distribution families to given quantiles and returns
 #' diagnostics that allow user to choose a most appropriate probability.
 #'
@@ -1015,10 +1043,11 @@ plotDiagnostics.perc<-function(fit.results,tolPlot=0.1)
 #' parameters and a vector of theoretical percentiles calculated based on the
 #' estimated parameters. If the consistency check of input parameters fails
 #' the function returns \code{NA}.
-# @seealso nothing...
 #' @keywords fitdistrplus
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' fit.results1<-rriskFitdist.perc(show.output=FALSE)
@@ -1398,7 +1427,9 @@ rriskFitdist.perc<-function(p=c(0.025,0.5,0.975),q=c(9.68,29.20,50.98),show.outp
 #' @seealso See \code{pbeta} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qbeta(p=c(0.025,0.5,0.975),shape1=2,shape2=3)
 #' X11(width=9,height=6)
@@ -1603,7 +1634,9 @@ get.beta.par <- function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, t
 #' @seealso See \code{pcauchy} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qcauchy(p=c(0.025,0.5,0.975),location=0,scale=1)
 #' X11(width=9,height=6)
@@ -1801,7 +1834,9 @@ get.cauchy.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, t
 #' @seealso See \code{pchisq} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qchisq(p=c(0.025,0.5,0.975),df=1)
 #' X11(width=9,height=6)
@@ -2002,7 +2037,9 @@ get.chisq.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, to
 #' @seealso See \code{pchisq} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qchisq(p=c(0.025,0.5,0.975),df=2,ncp=4)
 #' X11(width=9,height=6)
@@ -2205,7 +2242,9 @@ get.chisqnc.par<-function(p=c(0.025,0.5,0.975),q,show.output=TRUE,plot=TRUE,tol=
 #' @seealso See \code{pexp} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qexp(p=c(0.025,0.5,0.975),rate=2)
 #' X11(width=9,height=6)
@@ -2416,7 +2455,9 @@ get.exp.par<-function(p=c(0.025,0.50,.975),q,show.output=TRUE,plot=TRUE,tol=0.00
 #' @seealso See \code{pf} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qf(p=c(0.025,0.5,0.975),df1=2, df2=10)
 #' X11(width=9,height=6)
@@ -2617,7 +2658,9 @@ get.f.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, tol=0.
 #' @seealso See \code{pgamma} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qgamma(p=c(0.025,0.5,0.975),shape=10,rate=10)
 #' X11(width=9,height=6)
@@ -2824,7 +2867,9 @@ get.gamma.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, to
 #' @seealso See \code{pgompertz} from the package \pkg{eha} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qgompertz(p=c(0.025,0.5,0.975),shape=2,scale=5)
 #' X11(width=9,height=6)
@@ -3028,7 +3073,9 @@ get.gompertz.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE,
 #' @seealso See \code{phyper} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qhyper(p=c(0.025,0.5,0.975),m=5,n=3,k=3)
 #' X11(width=9,height=6)
@@ -3218,7 +3265,9 @@ get.hyper.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, to
 #' @seealso See \code{plnorm} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qlnorm(p=c(0.025,0.5,0.975),meanlog=4,sdlog=0.8)
 #' X11(width=9,height=6)
@@ -3429,7 +3478,9 @@ get.lnorm.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, to
 #' @seealso See \code{plogis} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qlogis(p=c(0.025,0.5,0.975),location=0,scale=1)
 #' X11(width=9,height=6)
@@ -3621,7 +3672,9 @@ get.logis.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, to
 #' @seealso See \code{pnbinom} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qnbinom(p=c(0.025,0.5,0.975),size=10,prob=0.5)
 #' X11(width=9,height=6)
@@ -3826,7 +3879,9 @@ get.nbinom.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, t
 #' @seealso See \code{pnorm} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qnorm(p=c(0.025,0.5,0.975),mean=12,sd=34)
 #' X11(width=9,height=6)
@@ -4006,7 +4061,9 @@ get.norm.par<-function(p=c(0.025,0.5,0.975),q, show.output=TRUE, plot=TRUE, tol=
 #' @seealso See \code{pnorm} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qnorm(p=c(0.025,0.5,0.975),mean=0,sd=2)
 #' X11(width=9,height=6)
@@ -4204,7 +4261,9 @@ get.norm.sd<-function(p=c(0.025,0.5,0.975),q,show.output=TRUE,plot=TRUE,fit.weig
 #' @seealso See \code{ppert} from the package \pkg{mc2d} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qpert(p=c(0.025,0.5,0.6,0.975),min=0,mode=3,max=10,shape=5)
 #' X11(width=9,height=6)
@@ -4406,7 +4465,9 @@ get.pert.par<-function(p=c(0.025,0.5,0.6,0.975),q,show.output=TRUE, plot=TRUE, t
 #' @seealso See \code{ppois} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qpois(p=c(0.025,0.5,0.975),lambda=3)
 #' X11(width=9,height=6)
@@ -4598,7 +4659,9 @@ get.pois.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, tol
 #' @seealso See \code{pt} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qt(p=c(0.025,0.5,0.975),df=10)
 #' X11(width=9,height=6)
@@ -4794,7 +4857,9 @@ get.t.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, tol=0.
 #' @seealso See \code{ptnorm} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qtnorm(p=c(0.025,0.5,0.75,0.975),mean=3,sd=3,lower=0,upper=10)
 #' X11(width=9,height=6)
@@ -4989,7 +5054,9 @@ get.tnorm.par<-function(p=c(0.025,0.5,0.75,0.975),q, show.output=TRUE, plot=TRUE
 #' @seealso See \code{ptriang} from the package \pkg{mc2d} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qtriang(p=c(0.025,0.5,0.975),min=0,mode=3,max=10)
 #' X11(width=9,height=6)
@@ -5162,10 +5229,11 @@ get.triang.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, t
 #' specified tolerance not achieved", one may try to set the convergence tolerance
 #' to a higher value. It is yet to be noted, that good till very good fits of parameters
 #' could only be obtained for tolerance values that are smaller than 0.001.
-# @seealso Nothing...
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' q<-qunif(p=c(0.025,0.975),min=0,max=5)
 #' get.unif.par(q=q)
@@ -5299,7 +5367,9 @@ get.unif.par<-function(p=c(0.025,0.975), q, plot=TRUE,scaleX=c(0.1,0.9),...)
 #' @seealso See \code{pweibull} for distribution implementation details.
 #' @keywords fitpercentiles
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{q<-qweibull(p=c(0.025,0.5,0.975),shape=0.01,scale=1)
 #' X11(width=9,height=6)
@@ -5482,11 +5552,11 @@ get.weibull.par<-function(p=c(0.025,0.5,0.975), q, show.output=TRUE, plot=TRUE, 
 #' \code{chisq}, \code{unif}, \code{gamma}, \code{lnorm}, \code{weibull},
 #' \code{f}, \code{t}, \code{gompertz}, \code{triang}.
 #' @return Returns matrix with fitting results. More information...
-# @note nothing...
-# @seealso nothing...
 #' @keywords others
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' x1 <- rgamma(374,4,0.08)
@@ -5783,10 +5853,11 @@ useFitdist<-function(data2fit,show.output=TRUE,
 #' on which the fitting is based.
 #' @note This function is used for defining a Monte-Carlo random variate item
 #' (\code{mcrv}) in the \code{rrisk} project.
-# @seealso nothing...
 #' @keywords gui
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' res1<-fit.cont(data2fit=rgamma(374,4,0.08))
@@ -6207,11 +6278,11 @@ fit.cont<-function(data2fit=rnorm(1000))
 #' are provided only for the following distributions : "norm", "lnorm", "exp",
 #' "pois", "gamma", "logis", "nbinom" , "geom", "beta" and "unif".
 #' @return \code{rriskMMEdist} returns the named parameter or a named vector of parameters.
-# @note nothing...
-# @seealso nothing...
 #' @keywords fitdistrplus
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' # Continuous distributions
@@ -6394,11 +6465,11 @@ rriskMMEdist<-function (data, distr)
 #' at the solution found or computed in the user-supplied optimization function.
 #' It is used in \code{rriskFitdist.cont} to estimate standard errors.}
 #' \item{\code{optim.function}}{the name of the optimization function used for maximum likelihood.}
-# @note nothing...
-# @seealso nothing...
 #' @keywords fitdistrplus
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' # a basic fit of some distribution with maximum likelihood estimation
@@ -6712,11 +6783,11 @@ rriskMLEdist<-function (data, distr, start = NULL, optim.method = "default",
 #' \item{\code{adtest}}{the decision of the Anderson-Darling test or \code{NULL}, if not computed.}
 #' \item{\code{ks}}{the Kolmogorov-Smirnov statistic or \code{NULL}, if not computed.}
 #' \item{\code{kstest}}{the decision of the Kolmogorov-Smirnov test or \code{NULL}, if not computed.}
-# @note nothing...
-# @seealso nothing...
 #' @keywords fitdistrplus
 #' @export
-# @references Gemeinsames Paper...
+#' @references Engelhardt, A., N. Belgorodski, K. Tolksdorf, C. Mueller-Graf and Matthias Greiner (2012),
+#' rriskDistributions: Estimating distribution parameters based on empirical quantiles and data.
+#' R Journal (submitted).
 #' @examples
 #' \donttest{
 #' set.seed(1)

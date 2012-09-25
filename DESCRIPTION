@@ -1,7 +1,6 @@
 Package: rriskDistributions
 Type: Package
-Title: Collection of functions for fitting distributions (related to
-        the 'rrisk' project)
+Title: Fitting distributions to given data or known quantiles
 Author: Natalia Belgorodski (STAT-UP Statistical Consulting, Germany),
         Matthias Greiner (Federal Institute for Risk Assessment,
         Germany), Kristin Tolksdorf (Federal Institute for Risk
@@ -13,6 +12,7 @@ Description: Collection of functions for fitting distributions to given
         data or by known quantiles. Two main functions fit.perc() and
         fit.cont() provide users a GUI that allows to choose a most
         appropriate distribution without any knowledge of the R syntax.
+        Note, this package is a part of the 'rrisk' project.
 License: GPL (>= 3)
 LazyLoad: yes
 URL: http://www.bfr.bund.de/cd/52158
@@ -29,10 +29,10 @@ Authors@R: c(person(given="Natalia",
         person(given="Katharina",
         family="Schueller",email="schueller@stat-up.de",role=c("aut"),comment="STAT-UP
         Statistical Consulting"))
-Version: 1.7
-Date: 2012-06-06
+Version: 1.8
+Date: 2012-09-25
 Collate: 'rriskDistributions-package.R'
-        'rriskDistributions_functions_v1.7.R'
-Packaged: 2012-06-06 12:17:44 UTC; dzhunna
+        'rriskDistributions_functions_v1.8new.R'
+Packaged: 2012-09-25 13:47:25 UTC; Administrator
 Repository: CRAN
-Date/Publication: 2012-06-06 17:55:16
+Date/Publication: 2012-09-26 09:05:13
