@@ -145,13 +145,6 @@ get.cauchy.par(p=c(0.025,0.975),q=q,fit.weights=c(1,100),scaleX=c(0.5,0.5))}
   \email{belgorodski@stat-up.de} (\acronym{STAT-UP}
   Statistical Consulting)
 }
-\references{
-  Engelhardt, A., N. Belgorodski, K. Tolksdorf, C.
-  Mueller-Graf and Matthias Greiner (2012),
-  rriskDistributions: Estimating distribution parameters
-  based on empirical quantiles and data. R Journal
-  (submitted).
-}
 \seealso{
   See \code{pcauchy} for distribution implementation
   details.

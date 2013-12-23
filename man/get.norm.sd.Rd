@@ -124,13 +124,6 @@ get.norm.sd(q=q)
   \email{belgorodski@stat-up.de} (\acronym{STAT-UP}
   Statistical Consulting)
 }
-\references{
-  Engelhardt, A., N. Belgorodski, K. Tolksdorf, C.
-  Mueller-Graf and Matthias Greiner (2012),
-  rriskDistributions: Estimating distribution parameters
-  based on empirical quantiles and data. R Journal
-  (submitted).
-}
 \seealso{
   See \code{pnorm} for distribution implementation details.
 }
