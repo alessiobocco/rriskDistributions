@@ -24,14 +24,14 @@ Authors@R: c(person(given="Natalia", family="Belgorodski", email="belgorodski@st
              role=c("ctb"), comment="Federal Institute for Risk Assessment, Germany"),  
       person(given="Lutz", family="Göhring", email="lutz.goehring@gmx.de",
              role=c("ctb"), comment="Lutz Göhring Consulting"))
-Version: 2.1.1
-Date: 2016-04-20
+Version: 2.1.2
+Date: 2017-03-22
 Encoding: UTF-8
 Collate: 'rriskDistributions-package.R'
         'rriskDistributions_functions.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2016-04-19 23:02:22 UTC; mattflor
+Packaged: 2017-03-23 12:39:48 UTC; mattflor
 Author: Natalia Belgorodski [aut] (STAT-UP Statistical Consulting),
   Matthias Greiner [aut, cre] (Federal Institute for Risk Assessment,
     Germany),
@@ -42,4 +42,4 @@ Author: Natalia Belgorodski [aut] (STAT-UP Statistical Consulting),
   Lutz Göhring [ctb] (Lutz Göhring Consulting)
 Maintainer: Matthias Greiner <matthias.greiner@bfr.bund.de>
 Repository: CRAN
-Date/Publication: 2016-04-22 13:10:02
+Date/Publication: 2017-03-24 13:17:43 UTC
